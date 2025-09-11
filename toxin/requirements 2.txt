@@ -1,0 +1,9 @@
+
+pandas
+dotenv
+numpy
+matplotlib
+scikit-learn
+huggingface_hub
+cerebras-cloud-sdk
+datasets
