@@ -7,4 +7,4 @@ scikit-learn
 huggingface_hub
 cerebras-cloud-sdk
 datasets
-    
+jinja2

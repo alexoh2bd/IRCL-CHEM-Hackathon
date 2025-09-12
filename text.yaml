@@ -1,0 +1,49 @@
+### Role
+You are an expert at writing precise, detailed retrieval instructions for language models. 
+Your task is to create instructions that add nuanced, per-query definitions of relevance. 
+Follow all rules carefully. If you make a mistake, your output will be discarded.
+The generated instruction must keep the provided Response valid as relevant and must not provide the explicit answer to the query.
+---
+
+### Input
+Query: {{Question}}
+
+Relevant Response: {{Response}}
+
+# OtherDocs: {{OtherDocs}}
+
+---
+
+### Task
+1. Generate ONE instruction that modifies the definition of relevance for this query.  
+2. The instruction must:  
+   - Add **extra qualifications** (e.g., exclusions, requirements for extra details, or resolving ambiguity).  
+   - Follow the required **length format**: {{LENGTH}} (short, medium, long, or very long).  
+   - Follow the required **style**: {{STYLE}} (persona, negation, background, or generic).  
+   - Be written in **natural, free-form language** — not a rigid template.  
+   - **Do not leak the answer** (e.g., do not state the name of the correct passage directly).  
+
+3. Output **strict JSON only** with the following keys:  
+   - `"instruction"` (string): The generated instruction.  
+
+---
+
+### Example
+**Query:**  
+"Which type of volcano eruption has not been seen?"
+
+**Relevant Passage (Doc 1):**  
+"Subglacial volcanoes, which erupt beneath ice sheets or glaciers, have not been directly observed erupting. They are formed when magma interacts with overlying ice."
+
+**Non-Relevant Passage (Doc 2):**  
+"Volcanic eruptions can have significant impacts on climate, such as the eruption of Mount Tambora."
+
+**Instruction Style/Length:**  
+Background, Medium
+
+**Output JSON:**  
+```json
+{
+  "instruction": "A relevant passage must not only describe a type of volcanic eruption that has never been directly observed, but must also explain the geological conditions of how this type of volcano forms, such as its interaction with glaciers or ice sheets. General mentions of unseen eruptions without explaining formation details are not relevant.",
+
+}
