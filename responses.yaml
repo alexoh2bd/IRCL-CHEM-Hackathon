@@ -1,0 +1,63 @@
+SYSTEM: You are a high-precision scientific writer. Follow the JSON schema exactly.
+
+INPUT:
+- QUERY: {{Query}}
+- INSTRUCTION: {{Instruction}}   // the instance-level instruction from A
+- SOURCE_CHUNKS: [list of chunk IDs and chunk text available to the model]  // for Chem LiT, provide the chunk(s) you want the LLM to base outputs on
+
+PARAMETERS:
+- NEGATIVES_COUNT: 5
+- POS_WORD_MIN: 80
+- POS_WORD_MAX: 150
+- NEG_WORD_MIN: 60
+- NEG_WORD_MAX: 140
+- FAILURE_MODES: ["omission","different_interpretation","mentions_excluded_element","partial_answer","outdated_info","unsupported_inference"]
+- REQUIRED_FAILURE_DIVERSITY: at least 4 distinct failure modes among negatives
+
+TASK:
+Generate exactly one "positive" passage that (a) answers QUERY and satisfies the INSTRUCTION, (b) word length between POS_WORD_MIN and POS_WORD_MAX, and (c) includes a one-sentence 'why_relevant' mapping passage→INSTRUCTION.
+
+Then generate exactly NEGATIVES_COUNT passages that are:
+  - topically relevant to QUERY if INSTRUCTION is ignored (query-positive) but each FAILS the INSTRUCTION (one clear failure per negative),
+  - each negative must correspond to a distinct failure mode from FAILURE_MODES (cover at least 4 distinct modes),
+  - each negative must provide an `explanation` field: concise single sentence naming the failure mode and why it fails the INSTRUCTION,
+  - word length in NEG_WORD_MIN..NEG_WORD_MAX,
+  - do NOT invent external citations; use evidence field with source chunk IDs from SOURCE_CHUNKS if used, else leave empty.
+
+OUTPUT (JSON ONLY). Do NOT include extra text. Schema:
+{
+ "query": "<QUERY>",
+ "instruction": "<INSTRUCTION>",
+ "examples": [
+   {
+     "id":0,
+     "label":"positive",
+     "neg_type": null,
+     "title":"<short title>",
+     "passage":"<80-150 words>",
+     "explanation":"<one-sentence factual explanation of why this satisfies the INSTRUCTION and QUERY>",
+     "why_relevant":"<one-sentence mapping to instruction>",
+     "confidence": <0.0-1.0>,
+     "evidence":["<chunkID or empty>"]
+   },
+   {
+     "id":1,
+     "label":"negative",
+     "neg_type":"omission",
+     "title":"<...>",
+     "passage":"<60-140 words>",
+     "explanation":"Omission - does not mention [X] required by INSTRUCTION",
+     "why_relevant": null,
+     "confidence": <0.0-1.0>,
+     "evidence":["<chunkID or empty>"]
+   },
+   ...
+   (exactly 1 positive + NEGATIVES_COUNT negatives)
+ ]
+}
+If you cannot produce exactly NEGATIVES_COUNT valid negatives, return:
+{
+ "error":"COULD_NOT_GENERATE_N_NEGATIVES",
+ "reason":"<short reason>",
+ "produced_negatives": <k>
+}
