@@ -55,7 +55,7 @@ if __name__ == '__main__':
         print(col, df[col][:5])
 
     for i in range(1):
-        prompt = build_prompt(project_dirdf['Question'][i], df['Answer'][i])
+        prompt = build_prompt(project_dir, df['Question'][i], df['Answer'][i])
         chat_completion = client.chat.completions.create(
             messages=[
                 {"role": "user", "content": prompt}
