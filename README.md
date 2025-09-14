@@ -67,9 +67,44 @@ I intended to use FollowIR-7B model for validation:
 - Confidence scoring for each relevance decision
 - Memory-efficient batch processing with checkpointing 
 
-## Examples
+## Observations
 
-Example 1:
+The **objective** of our instructions is important. 
+Similar to the paper, I appended additional instructions to the original query which altered the prompt’s relevance query. For a domain-specific QA dataset, the resulting prompt could hold a variety of changes to the original query’s relevance criteria. How do we want to change the query’s relevance criteria? Do we:
+- Add specified criteria and required details?
+- Provide contextual precision for the prompt?
+- Add complexity through additional information and ask for chain-of-thought reasoning steps? <br>
+
+How do we construct the instruction-negative responses? Where should instruction-negative responses fall short of complete answers? For this scenario, distinguish not just “correct vs. random,” but “correct vs. superficially plausible but wrong.” The negatives should require the model to know chemistry to tell them apart from positives.
+To answer these questions we need to properly frame our objective. By creating a contrastive learning dataset, what exactly are we training the model to do?  In the scenario of the Chemistry Literature data example, do we want the model to understand chemistry concepts with higher precision, or do we want the model to improve its reasoning surrounding chemistry concepts? 
+
+## Example Walkthrough
+### Objective
+The goal of this dataset is to train models to develop a deeper, instruction-aware understanding of niche chemistry concepts and their experimental dynamics.
+### Query
+How does the fluorescence quenching percentage of JUC-557-nanosheet at pH 1 compare to its quenching percentage at pH 14?
+### Instruction
+A relevant passage must explicitly report and detail the fluorescence quenching percentages of JUC-557-nanosheet under acidic (pH 1) and basic (pH 14) conditions, including the measurement method (e.g., steady-state or time-resolved fluorimetry), the concentration of nanosheet solutions analyzed, and the specific buffer or solvent systems used. It should also clarify whether the comparison accounts for potential interferences from pH-dependent structural changes or surface functionalization effects. Responses that only generalize quenching trends without this level of methodological and contextual precision at pH 1 and 14 are not relevant.
+### Prompt Quality Rationale:
+- Tightens the definition of “relevant” from basic comparison → quantitative + methodological + contextual precision.
+- Provides multiple avenues for constructing meaningful negatives (e.g., omit % values, omit methods, omit buffers, only mention trends).
+- Forces the model to learn source-material-level reasoning, not superficial answers.
+- Note: The instruction is very dense. If you scale up, you might want to simplify phrasing or modularize requirements (e.g., numbered bullet points), otherwise generation may drift or miss pieces.
+### Instruction Negative Examples:
+- **Omission**: Mentions trend (acid > base) but no % values, no method, no buffers.
+- **Partial Answer**: Reports only one pH condition (e.g., quenching at pH 1) but ignores the comparison to pH 14.
+- **Different Interpretation**: Says quenching is due to aggregation or solvent polarity instead of protonation/electron transfer (plausible but doesn’t match instruction).
+- **Mentions Excluded Element**: Talks about JUC-557 at neutral pH or with a different metal-organic framework, not the specified 1 vs. 14.
+- **Outdated / Unsupported**: References “an early report suggested ~50% quenching” without specifying method, concentration, or buffers.
+- **Over-generalization**: “All nanosheets quench more in acid than base” — plausible, but lacks specificity to the JUC-557 case.
+
+
+This question is vital in how we prompt the LM and assess the resulting dataset. 
+
+
+
+## Additional Example
+
 ```yaml
 Original Query: What happens to the separation of compounds when the pressure is increased?
 Original Response: Some compounds separate better at higher pressure
@@ -77,20 +112,10 @@ Generated Instruction: A relevant passage must describe how increased pressure c
 I-Positive Response: Increasing pressure affects compound separation differently depending on the method. In distillation, higher pressure raises boiling points for volatile compounds, making their separation less efficient due to reduced vapor-liquid equilibrium differences. For gas-phase compounds in gas chromatography, elevated column inlet pressure accelerates flow rates, shortening retention times and decreasing separation efficiency, while reducing outlet pressure improves resolution for non-polar compounds by prolonging interaction with the stationary phase. Polar compounds in liquid chromatography exhibit altered solubility at higher pressures, impacting partitioning between phases. Additionally, gas solubility in liquids increases with pressure (Henry’s Law), which complicates methods like pressure-sensitive extraction. Source chunks ID1-3 support these specific compound-type and mechanism-dependent effects.
 I-Negative Response 1: Pressure influences chemical equilibria by favoring low-molar-volume reactions. In high-pressure environments, compounds often resist phase changes. This can stabilize reaction intermediates but may also hinder equilibration.
 I-Negative Response 2: Elevated pressure reduces the volatility of compounds, narrowing boiling point differences. In vacuum distillations, lower pressure increases separation efficiency for volatile mixtures by lowering their boiling points.
-
-Example 2:
-```yaml
-Original Query: Why was UV-ozone treatment used instead of the harsher piranha treatment for treating glass substrates?
-Original Response: UV-ozone treatment was used instead of the harsher piranha treatment because it allowed pre-determining the film growth area by covering the undesired areas with acrylic tape, whereas the piranha treatment tends to etch away the ITO.
-Generated Instruction: A relevant passage must explain the use of a surface treatment method that allows controlled application of film growth by utilizing masking techniques, and must highlight the importance of preserving functional materials on the substrate. Passages that only mention alternative treatments without addressing their specific impacts on substrate integrity or masking compatibility are not relevant. Additionally, exclude any responses that provide general descriptions of either method without focusing on the comparative advantages related to material protection and film area definition.
-I-Positive Response: UV-ozone treatment was selected for glass substrates due to its compatibility with photolithography masking techniques and its ability to preserve functional materials during surface preparation. Unlike piranha etch, which employs a mixture of sulfuric acid and hydrogen peroxide at elevated temperatures, UV-ozone relies on reactive oxygen species generated by UV light to oxidize the glass surface. This method avoids contact with corrosive chemicals, preventing degradation of sensitive films like organic passivations or photoresists. Studies in C1 demonstrate that UV-ozone preserves native surface charge distributions critical for semiconductor patterning, whereas piranha etching (C2) often introduces microcracks and alters surface topography irreversibly. By selectively oxidizing exposed areas without requiring physical masking layers, UV-ozone enables accurate definition of film growth regions while maintaining substrate material integrity, as validated by C3's comparative analysis.
-I-Negative Response 1: UV-ozone was used for glass substrates because it minimizes liquid chemical exposure compared to piranha etch. While piranha etching involves hazardous sulfuric acid and strong oxidizers, UV-ozone utilizes gaseous ozone and UV radiation, reducing chemical waste and operator risk. However, it does not specify how each method affects substrate material stability or compatibility with masking processes, nor does it address functional material preservation as required.
-I-Negative Response 2: The choice of UV-ozone treatment over piranha etching was primarily motivated by operational cost savings. UV systems require no disposable chemicals and offer faster processing times, as demonstrated in C4. Although C5 notes that both methods achieve surface hydrophilicity, the focus on economical advantages shifts from the instruction’s emphasis on masking compatibility and material integrity preservation during film patterning.
+```
 
 
-
-## Configuration
-
+Configuration
 ```python
 # Ingestion Settings
 BATCH_SIZE = 20              # Rows to write at once
