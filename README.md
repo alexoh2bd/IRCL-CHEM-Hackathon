@@ -108,8 +108,19 @@ This question is vital in how we prompt the LM and assess the resulting dataset.
 ```yaml
 Original Query: What happens to the separation of compounds when the pressure is increased?
 Original Response: Some compounds separate better at higher pressure
-Generated Instruction: A relevant passage must describe how increased pressure chemically or physically influences the separation of compounds, specifically addressing the type of compounds involved (e.g., volatile, polar, or gas-phase species) and the separation mechanism (e.g., distillation, gas solubility, or chromatography). General statements about pressure effects without tying them to molecular interactions, phase behavior, or method-specific adjustments are not sufficient for relevance.
-I-Positive Response: Increasing pressure affects compound separation differently depending on the method. In distillation, higher pressure raises boiling points for volatile compounds, making their separation less efficient due to reduced vapor-liquid equilibrium differences. For gas-phase compounds in gas chromatography, elevated column inlet pressure accelerates flow rates, shortening retention times and decreasing separation efficiency, while reducing outlet pressure improves resolution for non-polar compounds by prolonging interaction with the stationary phase. Polar compounds in liquid chromatography exhibit altered solubility at higher pressures, impacting partitioning between phases. Additionally, gas solubility in liquids increases with pressure (Henry’s Law), which complicates methods like pressure-sensitive extraction. Source chunks ID1-3 support these specific compound-type and mechanism-dependent effects.
+Generated Instruction: A relevant passage must describe how increased pressure chemically or physically influences <br>
+the separation of compounds, specifically addressing the type of compounds involved (e.g., volatile, polar, or gas-phase species) <br>
+ and the separation mechanism (e.g., distillation, gas solubility, or chromatography). General statements about pressure effects <br>
+without tying them to molecular interactions, phase behavior, or method-specific adjustments are not sufficient for relevance.<br><br>
+I-Positive Response: Increasing pressure affects compound separation differently depending on the method. In distillation, higher<br>
+pressure raises boiling points for volatile compounds, making their separation less efficient due to reduced vapor-liquid equilibrium <br>
+differences. For gas-phase compounds in gas chromatography, elevated column inlet pressure accelerates flow rates, shortening retention <br>
+times and decreasing separation efficiency, while reducing outlet pressure improves resolution for non-polar compounds by prolonging <br>
+interaction with the stationary phase. Polar compounds in liquid chromatography exhibit altered solubility at higher pressures, impacting <br>
+partitioning between phases. Additionally, gas solubility in liquids increases with pressure (Henry’s Law), which complicates methods <br>
+like pressure-sensitive extraction. Source chunks ID1-3 support these specific compound-type and mechanism-dependent effects.
+<br> <br>
+
 I-Negative Response 1: Pressure influences chemical equilibria by favoring low-molar-volume reactions. In high-pressure environments, compounds often resist phase changes. This can stabilize reaction intermediates but may also hinder equilibration.
 I-Negative Response 2: Elevated pressure reduces the volatility of compounds, narrowing boiling point differences. In vacuum distillations, lower pressure increases separation efficiency for volatile mixtures by lowering their boiling points.
 ```
